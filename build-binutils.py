@@ -248,11 +248,11 @@ def invoke_configure(binutils_folder, build_folder, install_folder, target,
         configure += [f'--prefix={install_folder}']
     if host_arch:
         configure += [
-            f'CFLAGS=-flto -O3 -march={host_arch} -mtune={host_arch}',
-            f'CXXFLAGS=-flto -O3 -march={host_arch} -mtune={host_arch}'
+            f'CFLAGS=-flto -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}',
+            f'CXXFLAGS=-flto -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}'
         ]
     else:
-        configure += ['CFLAGS=-flto -O3', 'CXXFLAGS=-flto -O3']
+        configure += ['CFLAGS=-flto -O3 -pipe -ffunction-sections -fdata-sections', 'CXXFLAGS=-flto -O3 -pipe -ffunction-sections -fdata-sections']
     # gprofng uses glibc APIs that might not be available on musl
     if utils.libc_is_musl():
         configure += ['--disable-gprofng']
