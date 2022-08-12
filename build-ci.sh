@@ -98,6 +98,7 @@ llvm_commit_url="https://github.com/llvm/llvm-project/commit/$short_llvm_commit"
 binutils_ver="$(ls | grep "^binutils-" | sed "s/binutils-//g")"
 clang_version="$(install/bin/clang --version | head -n1 | cut -d' ' -f4)"
 TagsDate="$(TZ=Asia/Jakarta date +"%Y%m%d")"
+BuildDate="$(TZ=Asia/Jakarta date +"%Y-%m-%d")"
 ZipName="WeebX-Clang-$clang_version-${TagsDate}.tar.gz"
 Tags="WeebX-Clang-$clang_version-${TagsDate}-release"
 ClangLink="https://github.com/XSans0/WeebX-Clang/releases/download/${Tags}/${ZipName}"
@@ -121,7 +122,7 @@ popd || exit
 git clone "https://XSans0:$GIT_TOKEN@github.com/XSans0/WeebX-Clang.git" rel_repo
 pushd rel_repo || exit
 echo "${ClangLink}" > "$clang_version"-link.txt
-"$(TZ=Asia/Jakarta date +"%Y-%m-%d")" > build-date.txt
+echo "${BuildDate}" > build-date.txt
 git add .
 git commit -asm "WeebX-Clang-$clang_version: ${TagsDate}"
 git tag "${Tags}" -m "${Tags}"
