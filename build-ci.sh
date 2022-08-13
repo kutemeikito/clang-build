@@ -115,7 +115,7 @@ pushd install || exit
 * Binutils Version : $binutils_ver
 * Compiled Based : $llvm_commit_url"
 } >> README.md
-tar -czvf ../"$ZipName" /*
+tar -czvf ../"$ZipName" .
 popd || exit
 
 # Clone Repo
