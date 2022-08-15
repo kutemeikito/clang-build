@@ -9,16 +9,17 @@ err() {
     echo -e "\e[1;41m$*\e[0m"
 }
 
-# Cancel if environtment not ready
-if [[ -z "$GIT_TOKEN" ]] || [[ -z "$1" ]]; then
-    err "Something is missing!"
+# Environment checker
+if [ -z "$1" ] || [ -z "$GIT_TOKEN" ] || [ -z "$TELEGRAM_TOKEN" ] || [ -z "$TELEGRAM_CHAT" ]; then
+   echo "* Incomplete environment!"
 fi
 
 # Install dependency
 bash ci.sh deps
 
 # Set a directory
-DIR="$(pwd ...)"
+DIR="$(pwd)"
+BUILD_LOG="$DIR/build_log.txt"
 
 # Setup branch
 BRANCH="$1"
@@ -40,11 +41,31 @@ check_build_date() {
 # Go Check
 check_build_date
 
+# Telegram Setup
+git clone --depth=1 https://github.com/XSans0/Telegram Telegram
+
+TELEGRAM="$DIR/Telegram/telegram"
+send_msg() {
+  "${TELEGRAM}" -H -D \
+      "$(
+          for POST in "${@}"; do
+              echo "${POST}"
+          done
+      )"
+}
+
+send_file() {
+    "${TELEGRAM}" -H \
+    -f "$1" \
+    "$2"
+}
+
 # Build LLVM
 extra_args=()
     [[ -n ${GITHUB_ACTIONS:-} ]] && extra_args+=(--no-ccache)
 
 msg "Building LLVM..."
+send_msg "<b>$BRANCH: </b><code>Clang build started...</code>"
 ./build-llvm.py \
 	--clang-vendor "WeebX" \
 	--defines "LLVM_PARALLEL_COMPILE_JOBS=$(nproc) LLVM_PARALLEL_LINK_JOBS=$(nproc) CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3" \
@@ -52,16 +73,17 @@ msg "Building LLVM..."
 	--targets "ARM;AArch64;X86" \
 	--shallow-clone \
 	--incremental \
-    --branch "${BRANCH}" "${extra_args[@]}"
+    --branch "${BRANCH}" "${extra_args[@]}" 2>&1 | tee "${BUILD_LOG}"
 
 # Check if the final clang binary exists or not.
 for file in install/bin/clang-1*
 do
   if [ -e "$file" ]
   then
-    msg "Clang build successfully"
+    msg "LLVM building successfully"
   else 
-    err "Clang build failed!"
+    err "LLVM build failed!"
+    send_file "$BUILD_LOG" "<b>$BRANCH: </b><code>Clang build failed!</code>"
     exit
   fi
 done
@@ -180,3 +202,16 @@ if [ "$fail" == "y" ];then
     git push -f origin main
     popd || exit
 fi
+
+# Send message to telegram
+send_file "$BUILD_LOG" "<b>$BRANCH: </b><code>Clang build successfull</code>"
+send_msg "
+#$BRANCH
+
+<b>----------Quick Info----------</b>
+<b>Build Date : </b><code>$(TZ=Asia/Jakarta date +"%Y-%m-%d")</code>
+<b>Clang Version : </b><code>$clang_version</code>
+<b>Binutils Version : </b><code>$binutils_ver</code>
+<b>Compile Based : </b><code>$llvm_commit_url</code>
+<b>Push Repository : </b><a href='https://github.com/XSans0/WeebX-Clang.git'>Github</a>
+"
