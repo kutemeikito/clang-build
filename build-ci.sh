@@ -65,7 +65,7 @@ extra_args=()
     [[ -n ${GITHUB_ACTIONS:-} ]] && extra_args+=(--no-ccache)
 
 msg "Building LLVM..."
-send_msg "<b>$BRANCH: </b><code>Clang build started...</code>"
+send_msg "<b>Clang build started on $BRANCH branch</b>"
 ./build-llvm.py \
 	--clang-vendor "WeebX" \
 	--defines "LLVM_PARALLEL_COMPILE_JOBS=$(nproc) LLVM_PARALLEL_LINK_JOBS=$(nproc) CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3" \
@@ -80,10 +80,10 @@ for file in install/bin/clang-1*
 do
   if [ -e "$file" ]
   then
-    msg "LLVM building successfully"
+    msg "LLVM building successful"
   else 
     err "LLVM build failed!"
-    send_file "$BUILD_LOG" "<b>$BRANCH: </b><code>Clang build failed!</code>"
+    send_file "$BUILD_LOG" "<b>Clang build failed on $BRANCH branch</b>"
     exit
   fi
 done
@@ -132,7 +132,7 @@ git config --global user.email "xsansdroid@gmail.com"
 pushd install || exit
 {
     echo "# Quick Info
-* Build Date : $(TZ=Asia/Jakarta date +"%Y-%m-%d")
+* Build Date : $BuildDate
 * Clang Version : $clang_version
 * Binutils Version : $binutils_ver
 * Compiled Based : $llvm_commit_url"
@@ -204,14 +204,18 @@ if [ "$fail" == "y" ];then
 fi
 
 # Send message to telegram
-send_file "$BUILD_LOG" "<b>$BRANCH: </b><code>Clang build successfull</code>"
+send_file "$BUILD_LOG" "<b>Clang build successful on $BRANCH branch</b>"
 send_msg "
-#$BRANCH
-
-<b>----------Quick Info----------</b>
-<b>Build Date : </b><code>$(TZ=Asia/Jakarta date +"%Y-%m-%d")</code>
-<b>Clang Version : </b><code>$clang_version</code>
-<b>Binutils Version : </b><code>$binutils_ver</code>
-<b>Compile Based : </b><code>$llvm_commit_url</code>
-<b>Push Repository : </b><a href='https://github.com/XSans0/WeebX-Clang.git'>Github</a>
+<b>----------------- Quick Info -----------------</b>
+<b>Build Date : </b>
+* <code>$BuildDate</code>
+<b>Clang Version : </b>
+* <code>$clang_version</code>
+<b>Binutils Version : </b>
+* <code>$binutils_ver</code>
+<b>Compile Based : </b>
+* <a href='$llvm_commit_url'>$llvm_commit_url</a>
+<b>Push Repository : </b>
+* <a href='https://github.com/XSans0/WeebX-Clang.git'>WeebX-Clang</a>
+<b>--------------------------------------------------</b>
 "
