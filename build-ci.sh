@@ -65,7 +65,7 @@ extra_args=()
     [[ -n ${GITHUB_ACTIONS:-} ]] && extra_args+=(--no-ccache)
 
 msg "Building LLVM..."
-send_msg "<b>Clang build started on <code>$BRANCH</code> branch</b>"
+send_msg "<b>Clang build started on <code>[ $BRANCH ]</code> branch</b>"
 ./build-llvm.py \
 	--clang-vendor "WeebX" \
 	--defines "LLVM_PARALLEL_COMPILE_JOBS=$(nproc) LLVM_PARALLEL_LINK_JOBS=$(nproc) CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3" \
@@ -83,7 +83,7 @@ do
     msg "LLVM building successful"
   else 
     err "LLVM build failed!"
-    send_file "$BUILD_LOG" "<b>Clang build failed on <code>$BRANCH</code> branch</b>"
+    send_file "$BUILD_LOG" "<b>Clang build failed on <code>[ $BRANCH ]</code> branch</b>"
     exit
   fi
 done
@@ -204,7 +204,7 @@ if [ "$fail" == "y" ];then
 fi
 
 # Send message to telegram
-send_file "$BUILD_LOG" "<b>Clang build successful on <code>$BRANCH</code> branch</b>"
+send_file "$BUILD_LOG" "<b>Clang build successful on <code>[ $BRANCH ]</code> branch</b>"
 send_msg "
 <b>----------------- Quick Info -----------------</b>
 <b>Build Date : </b>
