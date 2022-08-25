@@ -29,8 +29,12 @@ check_build_date() {
     # We only run this when running on GitHub Actions
     [[ -z ${GITHUB_ACTIONS:-} ]] && return 0
 
-    wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/build-date.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
-
+    if [ "$BRANCH" == "main" ]; then
+        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/build-date-16.0.0.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
+    elif [ "$BRANCH" == "release/15.x" ]; then
+        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/build-date-15.0.0.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
+    fi
+    
     if [[ "$(cat date.txt)" == "$(TZ=Asia/Jakarta date +"%Y-%m-%d")" ]]; then
         msg "Clang is already made for today"
         rm -rf date.txt
@@ -144,7 +148,7 @@ popd || exit
 git clone "https://XSans0:$GIT_TOKEN@github.com/XSans0/WeebX-Clang.git" rel_repo
 pushd rel_repo || exit
 echo "${ClangLink}" > "$clang_version"-link.txt
-echo "${BuildDate}" > build-date.txt
+echo "${BuildDate}" > build-date-"$clang_version".txt
 git add .
 git commit -asm "WeebX-Clang-$clang_version: ${TagsDate}"
 git tag "${Tags}" -m "${Tags}"
