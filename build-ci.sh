@@ -142,8 +142,8 @@ popd || exit
 # Clone Repo
 git clone "https://XSans0:$GIT_TOKEN@github.com/XSans0/WeebX-Clang.git" rel_repo
 pushd rel_repo || exit
-echo "${ClangLink}" > "$clang_version"-link.txt
-echo "${BuildDate}" > build-date-"$clang_version".txt
+echo "${ClangLink}" > "$clang_version"/link.txt
+echo "${BuildDate}" > "$clang_version"/build-date.txt
 git add .
 git commit -asm "WeebX-Clang-$clang_version: ${TagsDate}"
 git tag "${Tags}" -m "${Tags}"
