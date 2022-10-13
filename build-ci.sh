@@ -12,6 +12,7 @@ err() {
 # Environment checker
 if [ -z "$1" ] || [ -z "$GIT_TOKEN" ] || [ -z "$TELEGRAM_TOKEN" ] || [ -z "$TELEGRAM_CHAT" ]; then
    echo "* Incomplete environment!"
+   exit
 fi
 
 # Install dependency
