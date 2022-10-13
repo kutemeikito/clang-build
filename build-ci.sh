@@ -25,25 +25,20 @@ BUILD_LOG="$DIR/build_log.txt"
 BRANCH="$1"
 
 # Cancel if clang is already made for today
-check_build_date() {
-    # We only run this when running on GitHub Actions
-    [[ -z ${GITHUB_ACTIONS:-} ]] && return 0
-
+# We only run this when running on GitHub Actions
+if [ "${GITHUB_ACTIONS}" ]; then
     if [ "$BRANCH" == "main" ]; then
-        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/build-date-16.0.0.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
+        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/16.0.0/build-date.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
     elif [ "$BRANCH" == "release/15.x" ]; then
-        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/build-date-15.0.0.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
+        wget -q https://raw.githubusercontent.com/XSans0/WeebX-Clang/main/15.0.3/build-date.txt -O date.txt 1>/dev/null 2>/dev/null || echo 'nothing' > date.txt
     fi
-    
+
     if [[ "$(cat date.txt)" == "$(TZ=Asia/Jakarta date +"%Y-%m-%d")" ]]; then
         msg "Clang is already made for today"
         rm -rf date.txt
         exit
     fi
-}
-
-# Go Check
-check_build_date
+fi
 
 # Telegram Setup
 git clone --depth=1 https://github.com/XSans0/Telegram Telegram
