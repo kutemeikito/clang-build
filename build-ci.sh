@@ -61,9 +61,6 @@ send_file() {
 }
 
 # Build LLVM
-extra_args=()
-    [[ -n ${GITHUB_ACTIONS:-} ]] && extra_args+=(--no-ccache)
-
 msg "Building LLVM..."
 send_msg "<b>Clang build started on <code>[ $BRANCH ]</code> branch</b>"
 ./build-llvm.py \
@@ -71,9 +68,10 @@ send_msg "<b>Clang build started on <code>[ $BRANCH ]</code> branch</b>"
 	--defines "LLVM_PARALLEL_COMPILE_JOBS=$(nproc) LLVM_PARALLEL_LINK_JOBS=$(nproc) CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3" \
 	--projects "clang;compiler-rt;lld;polly" \
 	--targets "ARM;AArch64;X86" \
-	--shallow-clone \
-	--incremental \
-    --branch "${BRANCH}" "${extra_args[@]}" 2>&1 | tee "${BUILD_LOG}"
+        --no-ccache \
+        --quiet-cmake \
+        --shallow-clone \
+        --branch "${BRANCH}" 2>&1 | tee "${BUILD_LOG}"
 
 # Check if the final clang binary exists or not.
 for file in install/bin/clang-1*
