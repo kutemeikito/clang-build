@@ -119,8 +119,9 @@ binutils_ver="$(ls | grep "^binutils-" | sed "s/binutils-//g")"
 clang_version="$(install/bin/clang --version | head -n1 | cut -d' ' -f4)"
 TagsDate="$(TZ=Asia/Jakarta date +"%Y%m%d")"
 BuildDate="$(TZ=Asia/Jakarta date +"%Y-%m-%d")"
-ZipName="WeebX-Clang-$clang_version-${TagsDate}.tar.gz"
-Tags="WeebX-Clang-$clang_version-${TagsDate}-release"
+BuildHours="$(TZ=Asia/Jakarta date +"%H%M")"
+ZipName="WeebX-Clang-$clang_version-$TagsDate-$BuildHours.tar.gz"
+Tags="WeebX-Clang-$clang_version-$TagsDate-release"
 ClangLink="https://github.com/XSans0/WeebX-Clang/releases/download/${Tags}/${ZipName}"
 
 # Git Config
