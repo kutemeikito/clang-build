@@ -248,11 +248,11 @@ def invoke_configure(binutils_folder, build_folder, install_folder, target,
         configure += [f'--prefix={install_folder}']
     if host_arch:
         configure += [
-            f'CFLAGS=-flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}',
-            f'CXXFLAGS=-flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}'
+            f'CFLAGS=-flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}',
+            f'CXXFLAGS=-flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -march={host_arch} -mtune={host_arch}'
         ]
     else:
-        configure += ['CFLAGS=-flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections', 'CXXFLAGS=-flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections', 'LDFLAGS=-O3']
+        configure += ['CFLAGS=-flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections', 'CXXFLAGS=-flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections', 'LDFLAGS=-O3']
     # gprofng uses glibc APIs that might not be available on musl
     if utils.libc_is_musl():
         configure += ['--disable-gprofng']
