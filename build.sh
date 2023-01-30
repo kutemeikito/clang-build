@@ -45,6 +45,7 @@ send_msg "<b>Clang build started on <code>[ $BRANCH ]</code> branch</b>"
     --clang-vendor "WeebX" \
     --defines LLVM_PARALLEL_COMPILE_JOBS=$(nproc) LLVM_PARALLEL_LINK_JOBS=$(nproc) CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
     --no-ccache \
+    --project "clang;compiler-rt;lld;polly;openmp" \
     --quiet-cmake \
     --shallow-clone \
     --targets "ARM;AArch64;X86" 2>&1 | tee "$HOME_DIR/log.txt"
