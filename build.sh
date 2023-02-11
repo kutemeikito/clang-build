@@ -129,25 +129,62 @@ else
 fi
 git add .
 git commit -asm "WeebX-Clang-$clang_version: $TagsDate"
+git tag "$Tags" -m "$Tags"
 git push -f origin main
+git push -f origin "$Tags"
 popd || exit
 
 # Upload to github release
+chmod +x github-release
 ./github-release release \
-    --title "$Tags" \
-    --owner "XSans0" \
-    --repo "WeebX-Clang" \
+    --security-token "$GIT_TOKEN" \
+    --user XSans0 \
+    --repo WeebX-Clang \
     --tag "$Tags" \
-    --description "$(cat install/README.md)" \
-    --token "$GIT_TOKEN"
+    --name "$Tags" \
+    --description "$(cat install/README.md)"
 
+fail="n"
 ./github-release upload \
-    --file "$ZipName" \
-    --name "$ZipName" \
-    --owner "XSans0" \
-    --repo "WeebX-Clang" \
+    --security-token "$GIT_TOKEN" \
+    --user XSans0 \
+    --repo WeebX-Clang \
     --tag "$Tags" \
-    --token "$GIT_TOKEN"
+    --name "$ZipName" \
+    --file "$ZipName" || fail="y"
+
+TotalTry="0"
+UploadAgain()
+{
+    GetRelease="$(./github-release upload \
+        --security-token "$GIT_TOKEN" \
+        --user XSans0 \
+        --repo WeebX-Clang \
+        --tag "${Tags}" \
+        --name "$ZipName" \
+        --file "$ZipName")"
+    [[ -z "$GetRelease" ]] && fail="n"
+    [[ "$GetRelease" == *"already_exists"* ]] && fail="n"
+    TotalTry=$((TotalTry+1))
+    if [ "$fail" == "y" ];then
+        if [ "$TotalTry" != "5" ];then
+            sleep 10s
+            UploadAgain
+        fi
+    fi
+}
+if [ "$fail" == "y" ];then
+    sleep 10s
+    UploadAgain
+fi
+
+if [ "$fail" == "y" ];then
+    pushd rel_repo || exit
+    git push -d origin "$Tags"
+    git reset --hard HEAD~1
+    git push -f origin main
+    popd || exit
+fi
 
 # Send message to telegram
 send_file "$HOME_DIR/log.txt" "<b>Clang build successful on <code>[ $BRANCH ]</code> branch</b>"
