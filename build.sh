@@ -133,6 +133,7 @@ git tag -l | grep "$tags" || overwrite=n
 popd || exit
 
 # Upload to github release
+failed=n
 if [ "$overwrite" == "y" ]; then
     ./github-release edit \
         --security-token "$GIT_TOKEN" \
@@ -148,7 +149,7 @@ if [ "$overwrite" == "y" ]; then
         --tag "$tags" \
         --name "$file" \
         --file "$file" \
-        --replace
+        --replace || failed=y
 else
     ./github-release release \
         --security-token "$GIT_TOKEN" \
@@ -163,8 +164,22 @@ else
         --repo "WeebX-Clang" \
         --tag "$tags" \
         --name "$file" \
-        --file "$file"
+        --file "$file" || failed=y
 fi
+
+# Handle uploader if upload failed
+while [ "$failed" == "y" ]; do
+    failed=n
+    msg "* Upload again"
+    ./github-release upload \
+        --security-token "$GIT_TOKEN" \
+        --user "XSans0" \
+        --repo "WeebX-Clang" \
+        --tag "$tags" \
+        --name "$file" \
+        --file "$file" \
+        --replace || failed=y
+done
 
 # Send message to telegram
 send_file "$HOME_DIR/log.txt" "<b>Clang build successful on <code>[ $BRANCH ]</code> branch</b>"
