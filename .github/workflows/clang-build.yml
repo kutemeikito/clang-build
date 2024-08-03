@@ -1,0 +1,73 @@
+name: RastaMod69-Clang
+
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: 'LLVM Branch'
+        required: true
+        default: 'main'
+      TELEGRAM_TOKEN:
+        description: 'Telegram token' 
+        required: true
+        default: ''
+      TELEGRAM_CHAT:
+        description: 'Telegram Chat Id' 
+        required: true
+        default: ''
+      GIT_TOKEN:
+        description: 'Github Token' 
+        required: true
+        default: ''
+
+jobs:
+  build:
+    name: RastaMod69-Clang by ${{ github.actor }}
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+    - name: Check Out
+      uses: actions/checkout@v4
+
+    - name: Cleanup
+      uses: rokibhasansagar/slimhub_actions@main
+      
+    - name: Set Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 16
+
+    - name: Prepare the environment
+      run: |
+        sudo apt update
+        sudo apt -y upgrade
+        sudo apt -y install gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev tree lib32z-dev libgl1-mesa-dev libxml2-utils xsltproc bc ccache lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libwxgtk3.0-gtk3-dev libxml2 lzop pngcrush schedtool squashfs-tools imagemagick libbz2-dev lzma ncftp qemu-user-static libstdc++-10-dev libtinfo5 libgflags-dev libncurses5 python3
+        sudo apt -y install bc binutils-dev bison build-essential ca-certificates ccache clang cmake curl file flex git libelf-dev libssl-dev libstdc++-$(apt list libstdc++6 2>/dev/null | grep -Eos '[0-9]+\.[0-9]+\.[0-9]+' | head -1 | cut -d . -f 1)-dev lld make ninja-build python3-dev texinfo u-boot-tools xz-utils zlib1g-dev
+
+    - name: Install OpenJDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '8'
+
+    - name: Clone Repo
+      run: |
+        git clone https://github.com/kutemeikito/clang-build.git
+
+    - name: Run Build.sh
+      run: |
+        cd clang-build
+        echo "Telegram Token: ${{ github.event.inputs.TELEGRAM_TOKEN }}"
+        export TELEGRAM_TOKEN="${{ github.event.inputs.TELEGRAM_TOKEN }}"
+        echo "Telegram Chat ID: ${{ github.event.inputs.TELEGRAM_CHAT }}"
+        export TELEGRAM_CHAT="${{ github.event.inputs.TELEGRAM_CHAT }}"
+        echo "Github Token: ${{ github.event.inputs.GIT_TOKEN }}"
+        export GIT_TOKEN="${{ github.event.inputs.GIT_TOKEN }}"
+        echo "LLVM Branch: ${{ github.event.inputs.BRANCH }}"
+        export BRANCH="${{ github.event.inputs.BRANCH }}"
+        bash build.sh
+      continue-on-error: true
