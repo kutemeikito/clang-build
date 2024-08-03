@@ -50,7 +50,7 @@ jobs:
 
     - name: Clone Repo
       run: |
-        git clone -b github-actions https://github.com/kutemeikito/clang-build.git
+        git clone -b git-actions https://github.com/kutemeikito/clang-build.git
 
     - name: Run Build.sh
       run: |
