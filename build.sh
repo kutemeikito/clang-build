@@ -43,7 +43,7 @@ send_file() {
 
 # Building LLVM's
 msg "Building LLVM's ..."
-send_msg "<b>Start build RastaMod69 Clang from <code>[ $BRANCH ]</code> branch</b>"
+send_msg "<b>Start build RastaMod69 Clang from <code>[ $BRANCH ]</code> branch Via Github Actions</b>"
 ./build-llvm.py \
     --defines LLVM_PARALLEL_COMPILE_JOBS="$(nproc)" LLVM_PARALLEL_LINK_JOBS="$(nproc)" CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
     --install-folder "$HOME_DIR/install" \
@@ -104,7 +104,7 @@ clang_version="$("$HOME_DIR"/install/bin/clang --version | head -n1 | cut -d' ' 
 build_date="$(TZ=Asia/Jakarta date +"%Y-%m-%d")"
 tags="RastaMod69-Clang-$clang_version-release"
 file="RastaMod69-Clang-$clang_version.tar.gz"
-clang_link="https://github.com/kutemeikito/RastaMod69-Clang/releases/download/$tags/$file"
+clang_link="https://git@github.com:kutemeikito/RastaMod69-Clang/releases/download/$tags/$file"
 
 # Get binutils version
 binutils_version=$(grep "LATEST_BINUTILS_RELEASE" build-binutils.py)
