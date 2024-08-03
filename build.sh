@@ -99,7 +99,7 @@ pushd "$HOME_DIR"/src/llvm-project || exit
 llvm_commit="$(git rev-parse HEAD)"
 short_llvm_commit="$(cut -c-8 <<<"$llvm_commit")"
 popd || exit
-llvm_commit_url="https://github.com/llvm/llvm-project/commit/$short_llvm_commit"
+llvm_commit_url="https://github.com/kutemeikito/llvm-project/commit/$short_llvm_commit"
 clang_version="$("$HOME_DIR"/install/bin/clang --version | head -n1 | cut -d' ' -f4)"
 build_date="$(TZ=Asia/Jakarta date +"%Y-%m-%d")"
 tags="RastaMod69-Clang-$clang_version-release"
