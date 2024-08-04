@@ -55,13 +55,9 @@ jobs:
     - name: Run Build.sh
       run: |
         cd clang-build
-        echo "Telegram Token: ${{ github.event.inputs.TELEGRAM_TOKEN }}"
         export TELEGRAM_TOKEN="${{ github.event.inputs.TELEGRAM_TOKEN }}"
-        echo "Telegram Chat ID: ${{ github.event.inputs.TELEGRAM_CHAT }}"
         export TELEGRAM_CHAT="${{ github.event.inputs.TELEGRAM_CHAT }}"
-        echo "Github Token: ${{ github.event.inputs.GIT_TOKEN }}"
         export GIT_TOKEN="${{ github.event.inputs.GIT_TOKEN }}"
-        echo "LLVM Branch: ${{ github.event.inputs.BRANCH }}"
         export BRANCH="${{ github.event.inputs.BRANCH }}"
         bash build.sh
       continue-on-error: true
