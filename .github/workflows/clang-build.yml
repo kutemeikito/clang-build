@@ -7,18 +7,11 @@ on:
         description: 'LLVM Branch'
         required: true
         default: 'main'
-      TELEGRAM_TOKEN:
-        description: 'Telegram token' 
-        required: true
-        default: ''
-      TELEGRAM_CHAT:
-        description: 'Telegram Chat Id' 
-        required: true
-        default: ''
-      GIT_TOKEN:
-        description: 'Github Token' 
-        required: true
-        default: ''
+
+env:
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+  TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+  GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
 
 jobs:
   build:
@@ -55,9 +48,6 @@ jobs:
     - name: Run Build.sh
       run: |
         cd clang-build
-        export TELEGRAM_TOKEN="${{ github.event.inputs.TELEGRAM_TOKEN }}"
-        export TELEGRAM_CHAT="${{ github.event.inputs.TELEGRAM_CHAT }}"
-        export GIT_TOKEN="${{ github.event.inputs.GIT_TOKEN }}"
         export BRANCH="${{ github.event.inputs.BRANCH }}"
         bash build.sh
       continue-on-error: true
