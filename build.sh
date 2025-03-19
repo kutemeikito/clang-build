@@ -145,7 +145,7 @@ git commit -asm "RastaMod69-Clang-$clang_version: $(TZ=Asia/Jakarta date +"%Y%m%
 git push -f origin main
 
 # Check tags already exists or not
-overwrite=y
+overwrite=n
 git tag -l | grep "$tags" || overwrite=n
 popd || exit
 
