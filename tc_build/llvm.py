@@ -12,6 +12,8 @@ import time
 from tc_build.builder import Builder
 import tc_build.utils
 
+LLVM_VER_FOR_RUNTIMES = 20
+
 
 def get_all_targets(llvm_folder):
     contents = Path(llvm_folder, 'llvm/CMakeLists.txt').read_text(encoding='utf-8')
@@ -32,6 +34,7 @@ class LLVMBuilder(Builder):
         self.check_targets = []
         self.cmake_defines = {}
         self.install_targets = []
+        self.llvm_major_version = 0
         self.tools = None
         self.projects = []
         self.quiet_cmake = False
@@ -200,6 +203,7 @@ class LLVMBuilder(Builder):
             raise RuntimeError('No targets set?')
 
         self.validate_targets()
+        self.set_llvm_major_version()
 
         # yapf: disable
         cmake_cmd = [
@@ -247,7 +251,13 @@ class LLVMBuilder(Builder):
         if self.folders.install:
             self.cmake_defines['CMAKE_INSTALL_PREFIX'] = self.folders.install
 
-        self.cmake_defines['LLVM_ENABLE_PROJECTS'] = ';'.join(self.projects)
+        # https://github.com/llvm/llvm-project/commit/b593110d89aea76b8b10152b24ece154bff3e4b5
+        llvm_enable_projects = self.projects.copy()
+        if self.llvm_major_version >= LLVM_VER_FOR_RUNTIMES and self.project_is_enabled(
+                'compiler-rt'):
+            llvm_enable_projects.remove('compiler-rt')
+            self.cmake_defines['LLVM_ENABLE_RUNTIMES'] = 'compiler-rt'
+        self.cmake_defines['LLVM_ENABLE_PROJECTS'] = ';'.join(llvm_enable_projects)
         # Remove system dependency on terminfo to keep the dynamic library
         # dependencies slim. This can be done unconditionally when the option
         # exists, as it does not impact clang's ability to show colors for
@@ -321,6 +331,21 @@ class LLVMBuilder(Builder):
     def project_is_enabled(self, project):
         return 'all' in self.projects or project in self.projects
 
+    def set_llvm_major_version(self):
+        if self.llvm_major_version:
+            return  # no need to set if already set
+        if not self.folders.source:
+            raise RuntimeError('No source folder set?')
+        if (llvmversion_cmake := Path(self.folders.source,
+                                      'cmake/Modules/LLVMVersion.cmake')).exists():
+            text_to_search = llvmversion_cmake.read_text(encoding='utf-8')
+        else:
+            text_to_search = Path(self.folders.source,
+                                  'llvm/CMakeLists.txt').read_text(encoding='utf-8')
+        if not (match := re.search(r'set\(LLVM_VERSION_MAJOR (\d+)\)', text_to_search)):
+            raise RuntimeError('Could not find LLVM_VERSION_MAJOR in text?')
+        self.llvm_major_version = int(match.group(1))
+
     def show_install_info(self):
         # Installation folder is optional, show build folder as the
         # installation location in that case.
@@ -389,7 +414,10 @@ class LLVMSlimBuilder(LLVMBuilder):
 
         llvm_build_tools = self.cmake_defines.get('LLVM_BUILD_TOOLS', 'ON') == 'ON'
 
+        self.set_llvm_major_version()
+
         distribution_components = []
+        runtime_distribution_components = []
         if llvm_build_tools:
             distribution_components += [
                 'llvm-ar',
@@ -407,7 +435,12 @@ class LLVMSlimBuilder(LLVMBuilder):
         if self.project_is_enabled('lld'):
             distribution_components.append('lld')
         if build_compiler_rt:
-            distribution_components += ['llvm-profdata', 'profile']
+            distribution_components.append('llvm-profdata')
+            if self.llvm_major_version >= LLVM_VER_FOR_RUNTIMES:
+                distribution_components.append('runtimes')
+                runtime_distribution_components.append('profile')
+            else:
+                distribution_components.append('profile')
 
         slim_llvm_defines = {
             # Tools needed by bootstrapping
@@ -423,6 +456,8 @@ class LLVMSlimBuilder(LLVMBuilder):
             # Don't include example build targets to save on cmake cycles
             'LLVM_INCLUDE_EXAMPLES': 'OFF',
         }
+        if runtime_distribution_components:
+            slim_llvm_defines['LLVM_RUNTIME_DISTRIBUTION_COMPONENTS'] = ';'.join(runtime_distribution_components)
 
         slim_compiler_rt_defines = {
             # Don't build libfuzzer when compiler-rt is enabled, it invokes cmake again and we don't use it
@@ -533,7 +568,10 @@ class LLVMSourceManager:
 
     def default_targets(self):
         all_targets = get_all_targets(self.repo)
-        targets = ['AArch64', 'ARM', 'BPF', 'Hexagon', 'Mips', 'PowerPC', 'RISCV', 'SystemZ', 'X86']
+        targets = [
+            'AArch64', 'ARM', 'BPF', 'Hexagon', 'Mips', 'PowerPC', 'RISCV', 'Sparc', 'SystemZ',
+            'X86'
+        ]
 
         if 'LoongArch' in all_targets:
             targets.append('LoongArch')

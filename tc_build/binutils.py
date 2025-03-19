@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import platform
+from tempfile import TemporaryDirectory
 
 from tc_build.builder import Builder
 from tc_build.source import SourceManager
@@ -18,6 +19,7 @@ class BinutilsBuilder(Builder):
         self.configure_flags = [
             '--disable-compressed-debug-sections',
             '--disable-gdb',
+            '--disable-gprofng',
             '--disable-nls',
             '--disable-werror',
             '--enable-deterministic-archives',
@@ -27,9 +29,7 @@ class BinutilsBuilder(Builder):
             '--quiet',
             '--with-system-zlib',
         ]
-        # gprofng uses glibc APIs that might not be available on musl
-        if tc_build.utils.libc_is_musl():
-            self.configure_flags.append('--disable-gprofng')
+
         self.configure_vars = {
             'CC': 'gcc',
             'CXX': 'g++',
@@ -56,18 +56,24 @@ class BinutilsBuilder(Builder):
         self.folders.build.mkdir(exist_ok=True, parents=True)
         tc_build.utils.print_header(f"Building {self.target} binutils")
 
-        configure_cmd = [
-            Path(self.folders.source, 'configure'),
-            *self.configure_flags,
-        ] + [f"{var}={val}" for var, val in self.configure_vars.items()]
-        self.run_cmd(configure_cmd, cwd=self.folders.build)
+        # Binutils does not provide a configuration flag to disable installation of documentation directly.
+        # Instead, we redirect generated docs to a temporary directory, deleting them after installation.
+        with TemporaryDirectory() as tmpdir:
+            doc_dirs = ('info', 'html', 'pdf', 'man')
+            self.configure_flags += [f"--{doc}dir={tmpdir}" for doc in doc_dirs]
 
-        make_cmd = ['make', '-C', self.folders.build, '-s', f"-j{os.cpu_count()}", 'V=0']
-        self.run_cmd(make_cmd)
+            configure_cmd = [
+                Path(self.folders.source, 'configure'),
+                *self.configure_flags,
+            ] + [f"{var}={val}" for var, val in self.configure_vars.items()]
+            self.run_cmd(configure_cmd, cwd=self.folders.build)
 
-        if self.folders.install:
-            self.run_cmd([*make_cmd, 'install'])
-            tc_build.utils.create_gitignore(self.folders.install)
+            make_cmd = ['make', '-C', self.folders.build, '-s', f"-j{os.cpu_count()}", 'V=0']
+            self.run_cmd(make_cmd)
+
+            if self.folders.install:
+                self.run_cmd([*make_cmd, 'install'])
+                tc_build.utils.create_gitignore(self.folders.install)
 
 
 class StandardBinutilsBuilder(BinutilsBuilder):
